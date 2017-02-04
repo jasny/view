@@ -1,0 +1,235 @@
+<?php
+
+namespace Jasny\View;
+
+use Jasny\View\Twig as TwigView;
+use PHPUnit_Framework_TestCase as TestCase;
+use org\bovigo\vfs\vfsStream;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
+
+/**
+ * @covers Jasny\View\Twig
+ */
+class TwigTest extends TestCase
+{
+    public function testConstructWithOptions()
+    {
+        $root = vfsStream::setup();
+        $view = new TwigView([
+            'path' => vfsStream::url('root'),
+            'strict_variables' => true
+        ]);
+        
+        $this->assertInstanceOf(\Twig_Environment::class, $view->getTwig());
+        $this->assertInstanceOf(\Twig_Loader_Filesystem::class, $view->getTwig()->getLoader());
+        $this->assertEquals([vfsStream::url('root')], $view->getTwig()->getLoader()->getPaths());
+        $this->assertEquals(true, $view->getTwig()->isStrictVariables());
+    }
+    
+    public function testConstructWithDI()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $view = new TwigView($twig);
+        
+        $this->assertSame($twig, $view->getTwig());
+    }
+    
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testConstructWithInvalidArgument()
+    {
+        new TwigView('foo');
+    }
+    
+    /**
+     * @expectedException \BadMethodCallException
+     */
+    public function testConstructWithMissingPathOption()
+    {
+        new TwigView([]);
+    }
+
+    
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Expected name to be a string, not a array
+     */
+    public function testExposeInvalidArgument()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFunction');
+        $twig->expects($this->never())->method('addFilter');
+        
+        $view = new TwigView($twig);
+        
+        $view->expose(['class', 'method']);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Invalid name '/abc/def'
+     */
+    public function testExposeInvalidName()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFunction');
+        $twig->expects($this->never())->method('addFilter');
+        
+        $view = new TwigView($twig);
+        
+        $view->expose('/abc/def');
+    }
+
+    public function exposeProvider()
+    {
+        return [
+            ['strlen'],
+            ['string_length', 'strlen'],
+            ['foo', function () {}]
+        ];
+    }
+    
+    /**
+     * @dataProvider exposeProvider
+     * 
+     * @param string $name
+     * @param string $function
+     */
+    public function testExposeFunction($name, $function = null)
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFilter');
+        
+        $twig->expects($this->once())->method('addFunction')
+            ->with($this->callback(function ($fn) use ($name, $function) {
+                $this->assertInstanceOf(\Twig_SimpleFunction::class, $fn);
+                $this->assertSame($name, $fn->getName());
+                $this->assertSame($function ?: $name, $fn->getCallable());
+
+                return true;
+            }));
+        
+        $view = new TwigView($twig);
+        
+        $view->expose($name, $function);
+    }
+    
+    /**
+     * @dataProvider exposeProvider
+     * 
+     * @param string $name
+     * @param string $function
+     */
+    public function testExposeFilter($name, $function = null)
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFunction');
+        
+        $twig->expects($this->once())->method('addFilter')
+            ->with($this->callback(function ($fn) use ($name, $function) {
+                $this->assertInstanceOf(\Twig_SimpleFilter::class, $fn);
+                $this->assertSame($name, $fn->getName());
+                $this->assertSame($function ?: $name, $fn->getCallable());
+
+                return true;
+            }));
+        
+        $view = new TwigView($twig);
+        
+        $view->expose($name, $function, 'filter');
+    }
+    
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage You can create either a 'function' or 'filter', not a 'foo'
+     */
+    public function testExposeWithInvalidAs()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFunction');
+        $twig->expects($this->never())->method('addFilter');
+        
+        $view = new TwigView($twig);
+        
+        $view->expose('strlen', null, 'foo');
+    }
+    
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage You can create either a 'function' or 'filter', not a array
+     */
+    public function testExposeWithInvalidTypeAs()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->never())->method('addFunction');
+        $twig->expects($this->never())->method('addFilter');
+        
+        $view = new TwigView($twig);
+        
+        $view->expose('strlen', null, []);
+    }
+    
+    
+    public function testAddDefaultExtensions()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        
+        $twig->expects($this->exactly(9))->method('addExtension')
+            ->withConsecutive(
+                [$this->isInstanceOf(\Twig_Extensions_Extension_Array::class)],
+                [$this->isInstanceOf(\Twig_Extensions_Extension_Date::class)],
+                [$this->isInstanceOf(\Twig_Extensions_Extension_I18n::class)],
+                [$this->isInstanceOf(\Twig_Extensions_Extension_Intl::class)],
+                [$this->isInstanceOf(\Twig_Extensions_Extension_Text::class)],
+                [$this->isInstanceOf(\Jasny\Twig\DateExtension::class)],
+                [$this->isInstanceOf(\Jasny\Twig\PcreExtension::class)],
+                [$this->isInstanceOf(\Jasny\Twig\TextExtension::class)],
+                [$this->isInstanceOf(\Jasny\Twig\ArrayExtension::class)]
+            );
+        
+        $view = new TwigView($twig);
+        
+        $view->addDefaultExtensions();
+    }
+    
+    public function testAddExtension()
+    {
+        $extension = $this->createMock(\Twig_ExtensionInterface::class);
+        
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->once())->method('addExtension')->with($this->identicalTo($extension));
+        
+        $view = new TwigView($twig);
+        
+        $view->addExtension($extension);
+    }
+    
+    
+    public function testView()
+    {
+        $context = ['color' => 'blue', 'answer' => 42];
+        
+        $stream = $this->createMock(StreamInterface::class);
+        $stream->expects($this->once())->method('write')->with('Hello world');
+
+        $newResponse = $this->createMock(ResponseInterface::class);
+        $newResponse->expects($this->once())->method('getBody')->willReturn($stream);
+        
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects($this->once())->method('withHeader')->with('Content-Type', 'text/html; charset=Foo')
+            ->willReturn($newResponse);
+        
+        $template = $this->createMock(\Twig_TemplateInterface::class);
+        $template->expects($this->once())->method('render')->with($context)->willReturn('Hello world');
+        
+        $twig = $this->createMock(\Twig_Environment::class);
+        $twig->expects($this->once())->method('getCharset')->willReturn('Foo');
+        $twig->expects($this->once())->method('loadTemplate')->with('bar.html.twig')->willReturn($template);
+        
+        $view = new TwigView($twig);
+        
+        $view->view($response, 'bar', $context);
+    }
+}

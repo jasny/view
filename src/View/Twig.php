@@ -16,7 +16,6 @@ class Twig implements ViewInterface
      */
     protected $twig;
 
-
     /**
      * Class constructor
      * 
@@ -24,16 +23,7 @@ class Twig implements ViewInterface
      */
     public function __construct($options)
     {
-        if (is_array($options)) {
-            if (!isset($options['path'])) {
-                throw new \BadMethodCallException("'path' option is required");
-            }
-            
-            $loader = new \Twig_Loader_Filesystem($options['path']);
-            $twig = new \Twig_Environment($loader);
-        } else {
-            $twig = $options;
-        }
+        $twig = is_array($options) ? $this->createTwigEnvironment($options) : $options;
         
         if (!$twig instanceof \Twig_Environment) {
             throw new \InvalidArgumentException("Was expecting an array with options or a Twig_Environment, got a "
@@ -41,6 +31,23 @@ class Twig implements ViewInterface
         }
         
         $this->twig = $twig;
+    }
+    
+    /**
+     * Create a new Twig environment
+     * 
+     * @param array $options
+     * @return \Twig_Environment
+     */
+    protected function createTwigEnvironment(array $options)
+    {
+        if (!isset($options['path'])) {
+            throw new \BadMethodCallException("'path' option is required");
+        }
+
+        $loader = new \Twig_Loader_Filesystem($options['path']);
+        
+        return new \Twig_Environment($loader, $options);
     }
     
     /**
@@ -91,8 +98,8 @@ class Twig implements ViewInterface
             $filter = new \Twig_SimpleFilter($name, $function ?: $name);
             $this->getTwig()->addFilter($filter);
         } else {
-            $not = is_string($as) ? "'$as'" : 'a ' . gettype($as);
-            throw new \InvalidArgumentException("You should create either a 'function' or 'filter', not $not");
+            $not = is_string($as) ? "'$as'" : gettype($as);
+            throw new \InvalidArgumentException("You can create either a 'function' or 'filter', not a $not");
         }
 
         return $this;
