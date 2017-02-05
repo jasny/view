@@ -157,7 +157,7 @@ class Twig implements ViewInterface
     public function view(ResponseInterface $response, $name, array $context = [])
     {
         if (!pathinfo($name, PATHINFO_EXTENSION)) {
-            $name .= '.html.twig';
+            $name .= substr($name, -1) === '/' ? 'index.html.twig' : '.html.twig';
         }
 
         $twig = $this->getTwig();

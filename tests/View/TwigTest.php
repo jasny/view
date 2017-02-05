@@ -206,8 +206,24 @@ class TwigTest extends TestCase
         $view->addExtension($extension);
     }
     
+    public function filenameProvider()
+    {
+        return [
+            ['foo', 'foo.html.twig'],
+            ['foo.html.twig', 'foo.html.twig'],
+            ['foo.html', 'foo.html'],
+            ['foo/bar/zoo', 'foo/bar/zoo.html.twig'],
+            ['foo/bar/', 'foo/bar/index.html.twig']
+        ];
+    }
     
-    public function testView()
+    /**
+     * @dataProvider filenameProvider
+     * 
+     * @param string $name
+     * @param string $expect
+     */
+    public function testView($name, $expect)
     {
         $context = ['color' => 'blue', 'answer' => 42];
         
@@ -226,10 +242,10 @@ class TwigTest extends TestCase
         
         $twig = $this->createMock(\Twig_Environment::class);
         $twig->expects($this->once())->method('getCharset')->willReturn('Foo');
-        $twig->expects($this->once())->method('loadTemplate')->with('bar.html.twig')->willReturn($template);
+        $twig->expects($this->once())->method('loadTemplate')->with($expect)->willReturn($template);
         
         $view = new TwigView($twig);
         
-        $view->view($response, 'bar', $context);
+        $view->view($response, $name, $context);
     }
 }
