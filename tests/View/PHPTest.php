@@ -107,7 +107,7 @@ class PHPTest extends TestCase
      * @param string      $file
      * @param string      $defaultExt
      */
-    public function testOutput($name, $dir, $file, $defaultExt = null)
+    public function testRender($name, $dir, $file, $defaultExt = null)
     {
         if (isset($defaultExt)) {
             $this->view = new PHPView(['path' => vfsStream::url('root'), 'ext' => $defaultExt]);
@@ -136,27 +136,27 @@ class PHPTest extends TestCase
         $response->expects($this->once())->method('withHeader')->with('Content-Type', 'text/html')
             ->willReturn($newResponse);
         
-        $this->view->output($response, $name, $context);
+        $this->view->render($response, $name, $context);
     }
     
     /**
      * @expectedException InvalidArgumentException
      */
-    public function testOutputWithInvalidFile()
+    public function testRenderWithInvalidFile()
     {
         $response = $this->createMock(ResponseInterface::class);
         
-        $this->view->output($response, '../secret.yml');
+        $this->view->render($response, '../secret.yml');
     }
     
     /**
      * @expectedException RuntimeException
      * @expectedExceptionMessage View file 'vfs://root/bar.php' doesn't exist
      */
-    public function testOutputWithUnknownFile()
+    public function testRenderWithUnknownFile()
     {
         $response = $this->createMock(ResponseInterface::class);
         
-        $this->view->output($response, 'bar');
+        $this->view->render($response, 'bar');
     }
 }

@@ -139,7 +139,7 @@ class PHP implements ViewInterface
      * @param array             $context   Template context as associated array
      * @return ResponseInterface
      */
-    public function output(ResponseInterface $response, $name, array $context = [])
+    public function render(ResponseInterface $response, $name, array $context = [])
     {
         $this->assertFile($name);
 

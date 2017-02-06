@@ -211,7 +211,7 @@ class TwigTest extends TestCase
      * @param string $name
      * @param string $expect
      */
-    public function testOutput($name, $expect)
+    public function testRender($name, $expect)
     {
         $context = ['color' => 'blue', 'answer' => 42];
         
@@ -234,6 +234,6 @@ class TwigTest extends TestCase
         
         $view = new TwigView($twig);
         
-        $view->output($response, $name, $context);
+        $view->render($response, $name, $context);
     }
 }
