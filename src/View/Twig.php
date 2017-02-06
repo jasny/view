@@ -135,17 +135,19 @@ class Twig implements ViewInterface
     }
 
     /**
-     * Add a twig extension
+     * Get the filename
      * 
-     * @param \Twig_ExtensionInterface $extension
-     * @return $this
+     * @return string
      */
-    public function addExtension(\Twig_ExtensionInterface $extension)
+    protected function getFilename($name)
     {
-        $this->getTwig()->addExtension($extension);
+        if (pathinfo($name, PATHINFO_EXTENSION) === '') {
+            $name .= substr($name, -1) === '/' ? 'index.html.twig' : '.html.twig';
+        }
+        
+        return $name;
     }
-
-
+    
     /**
      * Render and output template
      *
@@ -154,14 +156,12 @@ class Twig implements ViewInterface
      * @param array             $context   Template context as associated array
      * @return ResponseInterface
      */
-    public function view(ResponseInterface $response, $name, array $context = [])
+    public function output(ResponseInterface $response, $name, array $context = [])
     {
-        if (!pathinfo($name, PATHINFO_EXTENSION)) {
-            $name .= substr($name, -1) === '/' ? 'index.html.twig' : '.html.twig';
-        }
+        $file = $this->getFilename($name);
 
         $twig = $this->getTwig();
-        $tmpl = $twig->loadTemplate($name);
+        $tmpl = $twig->loadTemplate($file);
 
         $contents = $tmpl->render($context);
         

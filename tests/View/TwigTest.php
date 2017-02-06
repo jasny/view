@@ -194,18 +194,6 @@ class TwigTest extends TestCase
         $view->addDefaultExtensions();
     }
     
-    public function testAddExtension()
-    {
-        $extension = $this->createMock(\Twig_ExtensionInterface::class);
-        
-        $twig = $this->createMock(\Twig_Environment::class);
-        $twig->expects($this->once())->method('addExtension')->with($this->identicalTo($extension));
-        
-        $view = new TwigView($twig);
-        
-        $view->addExtension($extension);
-    }
-    
     public function filenameProvider()
     {
         return [
@@ -223,7 +211,7 @@ class TwigTest extends TestCase
      * @param string $name
      * @param string $expect
      */
-    public function testView($name, $expect)
+    public function testOutput($name, $expect)
     {
         $context = ['color' => 'blue', 'answer' => 42];
         
@@ -246,6 +234,6 @@ class TwigTest extends TestCase
         
         $view = new TwigView($twig);
         
-        $view->view($response, $name, $context);
+        $view->output($response, $name, $context);
     }
 }
