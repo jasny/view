@@ -39,7 +39,7 @@ You may omit the second argument. In that case, the name will be used as functio
 $view->expose('strlen');
 $view->expose('replace', 'str_replace');
 $view->expose('add', function($a, $b) { return $a + $b; });
-```    
+```
 
 ### Render
 
@@ -161,3 +161,5 @@ exist, a `RuntimeExpection` is thrown.
 * [Jasny HTTP Message](https://github.com/jasny/http-message) - A PSR-7 implementation
 * [Jasny Controller](https://github.com/jasny/controller) - A general purpose controller for PSR-7
 * [Jasny MVC](https://github.com/jasny/mvc) - Meta package for Jasny Router, Controller and View
+* [Twig](http://twig.sensiolabs.org/) - The flexible, fast, and secure template engine for PHP
+
