@@ -8,9 +8,10 @@ Jasny View
 [![Packagist Stable Version](https://img.shields.io/packagist/v/jasny/view.svg)](https://packagist.org/packages/jasny/view)
 [![Packagist License](https://img.shields.io/packagist/l/jasny/view.svg)](https://packagist.org/packages/jasny/view)
 
-An abstraction for using PSR-7 with template engines.
+An abstraction for using [PSR-7](http://www.php-fig.org/psr/psr-7/) with template engines.
 
-Jasny View isn't bound to any framework and can be used anywhere you want to use an existing View engine with PSR-7.
+Jasny View isn't bound to any framework and can be used anywhere you want to use an existing template engine like Twig
+with PSR-7.
 
 Installation
 ---
@@ -154,3 +155,9 @@ $view->render($response, 'index', ['color' => 'blue', 'answer' => 42]);
 
 If the specified file name is a directory the index file from that directory is automatically used. If the file doesn't
 exist, a `RuntimeExpection` is thrown.
+
+## Related libraries
+
+* [Jasny HTTP Message](https://github.com/jasny/http-message) - A PSR-7 implementation
+* [Jasny Controller](https://github.com/jasny/controller) - A general purpose controller for PSR-7
+* [Jasny MVC](https://github.com/jasny/mvc) - Meta package for Jasny Router, Controller and View
