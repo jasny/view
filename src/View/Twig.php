@@ -45,9 +45,28 @@ class Twig implements ViewInterface
             throw new \BadMethodCallException("'path' option is required");
         }
 
-        $loader = new \Twig_Loader_Filesystem($options['path']);
+        $loader = new \Twig_Loader_Filesystem();
+        $this->addLoaderPaths($loader, $options['path']);
         
         return new \Twig_Environment($loader, $options);
+    }
+    
+    /**
+     * Add paths to Twig loader
+     * 
+     * @param \Twig_Loader_Filesystem $loader
+     * @param string|array            $paths
+     * @return type
+     */
+    protected function addLoaderPaths(\Twig_Loader_Filesystem $loader, $paths)
+    {
+        foreach ((array)$paths as $namespace => $path) {
+            if (is_int($namespace)) {
+                $namespace = \Twig_Loader_Filesystem::MAIN_NAMESPACE;
+            }
+
+            $loader->addPath($path, $namespace);
+        }
     }
     
     /**
@@ -171,3 +190,4 @@ class Twig implements ViewInterface
         return $newResponse;
     }
 }
+
