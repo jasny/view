@@ -3,6 +3,8 @@
 namespace Jasny\View;
 
 use Jasny\ViewInterface;
+use Jasny\View\PluginInterface;
+use Jasny\View\Plugin\DefaultTwigExtensions;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -15,7 +17,13 @@ class Twig implements ViewInterface
      * @var \Twig_Environment
      */
     protected $twig;
-
+    
+    /**
+     * @var PluginInterface[]
+     */
+    protected $plugins = [];
+    
+    
     /**
      * Class constructor
      * 
@@ -124,35 +132,56 @@ class Twig implements ViewInterface
         return $this;
     }
 
+    
+    /**
+     * Add a plugin to the view
+     * 
+     * @param PluginInterface $plugin
+     * @return $this
+     */
+    public function addPlugin(PluginInterface $plugin)
+    {
+        $plugin->onAdd($this); // Called before adding the plugin, because it may throw an exception
+        $this->plugins[] = $plugin;
+        
+        return $this;
+    }
+    
+    /**
+     * Get all plugins
+     * 
+     * @return PluginInterface[]
+     */
+    public function getPlugins()
+    {
+        return $this->plugins;
+    }
+    
+    /**
+     * Invoke the onRender method of all plugins
+     * 
+     * @param string $template  Template filename
+     * @param array  $context
+     */
+    protected function invokePluginsOnRender($template, array $context)
+    {
+        foreach ($this->plugins as $plugin) {
+            $plugin->onRender($this, $template, $context);
+        }
+    }
+    
     /**
      * Add the official Twig extension and Jansy Twig extensions.
-     * 
-     * @link https://github.com/twigphp/Twig-extensions
-     * @link https://github.com/jasny/twig-extensions
+     * @deprecated
      * 
      * @return $this
      */
     public function addDefaultExtensions()
     {
-        $extensions = [
-            'Twig_Extensions_Extension_Array',
-            'Twig_Extensions_Extension_Date',
-            'Twig_Extensions_Extension_I18n',
-            'Twig_Extensions_Extension_Intl',
-            'Twig_Extensions_Extension_Text',
-            'Jasny\Twig\DateExtension',
-            'Jasny\Twig\PcreExtension',
-            'Jasny\Twig\TextExtension',
-            'Jasny\Twig\ArrayExtension'
-        ];
-        
-        foreach ($extensions as $class) {
-            if (class_exists($class)) {
-                $this->getTwig()->addExtension(new $class());
-            }
-        }
+        return $this->addPlugin(new DefaultTwigExtensions());
     }
 
+    
     /**
      * Get the filename
      * 
@@ -181,6 +210,8 @@ class Twig implements ViewInterface
 
         $twig = $this->getTwig();
         $tmpl = $twig->loadTemplate($file);
+        
+        $this->invokePluginsOnRender($file, $context);
 
         $contents = $tmpl->render($context);
         

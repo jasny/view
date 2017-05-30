@@ -22,7 +22,8 @@
         "jasny/php-code-quality": "^2.0",
         "jasny/twig-extensions": "^1.0|^2.0",
         "twig/twig": "^1.31",
-        "twig/extensions": "^1.4"
+        "twig/extensions": "^1.4",
+        "kriswallsmith/assetic": "^1.4"
     },
     "suggest": {
         "twig/twig": "Needed to work with Twig templates",
