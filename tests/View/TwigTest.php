@@ -3,6 +3,7 @@
 namespace Jasny\View;
 
 use Jasny\View\Twig as TwigView;
+use Jasny\View\PluginInterface;
 use PHPUnit_Framework_TestCase as TestCase;
 use org\bovigo\vfs\vfsStream;
 use Psr\Http\Message\ResponseInterface;
@@ -170,6 +171,48 @@ class TwigTest extends TestCase
         
         $view->expose('strlen', null, []);
     }
+
+    public function testAddPlugin()
+    {
+        $view = new TwigView($this->createMock(\Twig_Environment::class));
+        
+        $plugin = $this->createMock(PluginInterface::class);
+        $plugin->expects($this->once())->method('onAdd')->with($this->identicalTo($view));
+        $plugin->expects($this->never())->method('onRender');
+        
+        $view->addPlugin($plugin);
+        
+        $this->assertSame([$plugin], $view->getPlugins());
+    }
+
+    public function testInvokePluginsOnRender()
+    {
+        $twig = $this->createMock(\Twig_Environment::class);
+        $view = new TwigView($twig);
+        
+        $plugins = [];
+        for ($i = 0; $i < 3; $i++) {
+            $plugins[$i] = $this->createMock(PluginInterface::class);
+            $plugins[$i]->expects($this->once())->method('onAdd')->with($this->identicalTo($view));
+            $plugins[$i]->expects($this->once())->method('onRender')
+                ->with($this->identicalTo($view), 'foo.html.twig', ['color' => 'blue']);
+            
+            $view->addPlugin($plugins[$i]);
+        }
+        
+        $this->assertSame($plugins, $view->getPlugins());
+        
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects($this->any())->method('withHeader')->willReturnSelf();
+        $response->expects($this->any())->method('getBody')->willReturn($this->createMock(StreamInterface::class));
+        
+        $template = $this->createMock(\Twig_TemplateInterface::class);
+        $template->expects($this->once())->method('render')->with(['color' => 'blue']);
+        
+        $twig->expects($this->once())->method('loadTemplate')->willReturn($template);
+        
+        $view->render($response, 'foo.html.twig', ['color' => 'blue']);
+    }
     
     
     public function testAddDefaultExtensions()
@@ -190,8 +233,9 @@ class TwigTest extends TestCase
             );
         
         $view = new TwigView($twig);
-        
         $view->addDefaultExtensions();
+        
+        $this->assertContainsOnlyInstancesOf(Plugin\DefaultTwigExtensions::class, $view->getPlugins());
     }
     
     public function filenameProvider()
