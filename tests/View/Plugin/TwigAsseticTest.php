@@ -8,6 +8,7 @@ use Jasny\View\Plugin\TwigAssetic;
 use PHPUnit_Framework_TestCase as TestCase;
 use PHPUnit_Framework_MockObject_MockObject as MockObject;
 use Assetic\AssetWriter;
+use Assetic\Extension\Twig\AsseticExtension;
 use Assetic\Extension\Twig\TwigFormulaLoader;
 use Assetic\Extension\Twig\TwigResource;
 use Assetic\Factory\AssetFactory;
@@ -54,12 +55,17 @@ class TwigAsseticTest extends TestCase
         
         $this->plugin = $this->getMockBuilder(TwigAssetic::class)
             ->setConstructorArgs([$this->factory, $this->writer])
-            ->setMethods(['createFormulaLoader', 'createAssetManager', 'createResource'])
+            ->setMethods(['createExtension', 'createFormulaLoader', 'createAssetManager', 'createResource'])
             ->getMock();
     }
     
     public function testOnAdd()
     {
+        $extension = $this->createMock(AsseticExtension::class);
+
+        $this->plugin->expects($this->once())->method('createExtension')->willReturn($extension);
+        $this->twig->expects($this->once())->method('addExtension')->with($this->identicalTo($extension));
+        
         $this->plugin->onAdd($this->view);
     }
     

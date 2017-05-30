@@ -6,6 +6,7 @@ use Jasny\ViewInterface;
 use Jasny\View\Twig as TwigView;
 use Jasny\View\PluginInterface;
 use Assetic\AssetWriter;
+use Assetic\Extension\Twig\AsseticExtension;
 use Assetic\Extension\Twig\TwigFormulaLoader;
 use Assetic\Extension\Twig\TwigResource;
 use Assetic\Factory\AssetFactory;
@@ -51,17 +52,18 @@ class TwigAssetic implements PluginInterface
         }
     }
     
+
     /**
-     * Called when the plugin is added to the view.
+     * Create an assetic extension for Twig.
+     * @codeCoverageIgnore
      * 
-     * @param ViewInterface $view
+     * @return AsseticExtension
      */
-    public function onAdd(ViewInterface $view)
+    protected function createExtension()
     {
-        $this->assertView($view);
+        return new AsseticExtension($this->factory);
     }
-    
-    
+
     /**
      * Create an assetic formula loader.
      * @codeCoverageIgnore
@@ -100,6 +102,18 @@ class TwigAssetic implements PluginInterface
     }
     
 
+    /**
+     * Called when the plugin is added to the view.
+     * 
+     * @param ViewInterface $view
+     */
+    public function onAdd(ViewInterface $view)
+    {
+        $this->assertView($view);
+
+        $view->getTwig()->addExtension($this->createExtension());
+    }
+    
     /**
      * Called when view renders a template.
      * 
