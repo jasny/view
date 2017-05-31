@@ -130,10 +130,14 @@ class TwigAssetic implements PluginInterface
         $loader = $this->createFormulaLoader($twig);
         
         $assetManager = $this->createAssetManager($loader);
-        $assetManager->setLoader('twig', $loader);        
+        $assetManager->setLoader('twig', $loader);   
+
+        $tmpl = $twig->loadTemplate($template);
         
-        $resource = $this->createResource($twig, $template);
-        $assetManager->addResource($resource, 'twig');
+        while ($tmpl = $tmpl->getParent($context)) {
+            $resource = $this->createResource($twig, (string)$tmpl);
+            $assetManager->addResource($resource, 'twig');
+        }
         
         $this->writer->writeManagerAssets($assetManager);
     }
