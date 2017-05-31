@@ -209,7 +209,7 @@ class Twig implements ViewInterface
         $file = $this->getFilename($name);
 
         $twig = $this->getTwig();
-        $tmpl = $twig->loadTemplate($file);
+        $tmpl = $twig->load($file);
         
         $this->invokePluginsOnRender($file, $context);
 

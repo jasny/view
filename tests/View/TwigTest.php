@@ -209,7 +209,7 @@ class TwigTest extends TestCase
         $template = $this->createMock(\Twig_TemplateInterface::class);
         $template->expects($this->once())->method('render')->with(['color' => 'blue']);
         
-        $twig->expects($this->once())->method('loadTemplate')->willReturn($template);
+        $twig->expects($this->once())->method('load')->willReturn($template);
         
         $view->render($response, 'foo.html.twig', ['color' => 'blue']);
     }
@@ -274,7 +274,7 @@ class TwigTest extends TestCase
         
         $twig = $this->createMock(\Twig_Environment::class);
         $twig->expects($this->once())->method('getCharset')->willReturn('Foo');
-        $twig->expects($this->once())->method('loadTemplate')->with($expect)->willReturn($template);
+        $twig->expects($this->once())->method('load')->with($expect)->willReturn($template);
         
         $view = new TwigView($twig);
         
