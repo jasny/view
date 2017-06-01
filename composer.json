@@ -29,6 +29,8 @@
         "twig/twig": "Needed to work with Twig templates",
         "twig/extensions": "Common additional features for Twig",
         "jasny/twig-extensions": "Additional features for Twig",
+        "kriswallsmith/assetic": "Asset management",
+        "jasny/assetic-extensions": "Improved caching for asstic",
         "jasny/controller": "A general purpose controller for PSR-7",
         "jasny/mvc": "Meta package for Jasny Router, Controller and View"
     },

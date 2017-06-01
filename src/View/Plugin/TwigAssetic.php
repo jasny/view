@@ -11,6 +11,7 @@ use Assetic\Extension\Twig\TwigFormulaLoader;
 use Assetic\Extension\Twig\TwigResource;
 use Assetic\Factory\AssetFactory;
 use Assetic\Factory\LazyAssetManager;
+use Jasny\Assetic\TwigCachingFormulaLoader;
 
 /**
  * Assetic support for Twig
@@ -73,17 +74,20 @@ class TwigAssetic implements PluginInterface
      */
     protected function createFormulaLoader($twig)
     {
-        return new TwigFormulaLoader($twig);
+        $class = class_exists('Jasny\Assetic\TwigCachingFormulaLoader')
+            ? TwigCachingFormulaLoader::class
+            : TwigFormulaLoader::class;
+        
+        return new $class($twig);
     }
     
     /**
      * Create an assetic asset manager.
      * @codeCoverageIgnore
      * 
-     * @param TwigFormulaLoader $loader
      * @return LazyAssetManager
      */
-    protected function createAssetManager(TwigFormulaLoader $loader)
+    protected function createAssetManager()
     {
         return new LazyAssetManager($this->factory);
     }
