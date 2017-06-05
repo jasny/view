@@ -87,8 +87,7 @@ class TwigAsseticTest extends TestCase
         $resource2 = $this->createMock(TwigResource::class);
         
         $tmpl = $this->createMock(Twig_Template::class);
-        $tmplParent1 = $this->createMock(Twig_Template::class);
-        $tmplParent2 = $this->createMock(Twig_Template::class);
+        $tmplParent = $this->createMock(Twig_Template::class);
         
         $this->plugin->expects($this->once())->method('createFormulaLoader')
             ->with($this->identicalTo($this->twig))
@@ -114,11 +113,11 @@ class TwigAsseticTest extends TestCase
         $this->writer->expects($this->once())->method('writeManagerAssets')->with($this->identicalTo($manager));
         
         $this->twig->expects($this->once())->method('loadTemplate')->with('foo.html.twig')->willReturn($tmpl);
-        $tmpl->expects($this->once())->method('getParent')->with([])->willReturn($tmplParent1);
-        $tmplParent1->expects($this->once())->method('getParent')->with([])->willReturn($tmplParent2);
+        $tmpl->expects($this->once())->method('getParent')->with([])->willReturn($tmplParent);
+        $tmpl->expects($this->once())->method('__toString')->willReturn('foo.html.twig');
 
-        $tmplParent1->expects($this->once())->method('__toString')->willReturn('foo.html.twig');
-        $tmplParent2->expects($this->once())->method('__toString')->willReturn('base.html.twig');
+        $tmplParent->expects($this->once())->method('getParent')->with([])->willReturn(null);
+        $tmplParent->expects($this->once())->method('__toString')->willReturn('base.html.twig');
         
         $this->plugin->onRender($this->view, 'foo.html.twig', []);
     }
